@@ -43,6 +43,13 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", default="http://localhost:3000")
 
+# Master key for application-level data encryption (envelope encryption of DEKs)
+# Should be a base64 encoded 32-byte string.
+EVENT_ENCRYPTION_MASTER_KEY = env(
+    "EVENT_ENCRYPTION_MASTER_KEY",
+    default="ZGVmYXVsdC1kZXYtbWFzdGVyLWtleS0zMi1ieXRlcyE="  # default-dev-master-key-32-bytes!
+)
+
 # Application definition
 INSTALLED_APPS = [
     "daphne",

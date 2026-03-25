@@ -77,6 +77,13 @@ class ContractEventSerializer(serializers.ModelSerializer):
             "validation_status",
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        if request and request.query_params.get("include_encrypted", "").lower() == "false":
+            data.pop("decoded_payload", None)
+        return data
+
 
 class ContractInvocationSerializer(serializers.ModelSerializer):
     """

@@ -9,6 +9,35 @@ from django.db import models
 
 User = get_user_model()
 
+from .encryption import encrypt_payload, decrypt_payload
+
+
+class EncryptedJSONField(models.JSONField):
+    """
+    A JSON field that transparently encrypts and decrypts dictionaries using application-level AES-256-GCM.
+    It saves an envelope `{"_ev": version, "data": "base64..."}` to the DB.
+    """
+    
+    def get_prep_value(self, value):
+        if value is None:
+            return value
+        
+        # If value is already an envelope
+        if isinstance(value, dict) and "_ev" in value and "data" in value:
+            return super().get_prep_value(value)
+            
+        encrypted = encrypt_payload(value)
+        return super().get_prep_value(encrypted)
+        
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+            
+        data = super().from_db_value(value, expression, connection)
+        
+        # Decrypt if it's an envelope
+        return decrypt_payload(data)
+
 
 class TrackedContract(models.Model):
     """
@@ -175,6 +204,56 @@ class ContractABI(models.Model):
         return f"ABI for {self.contract}"
 
 
+class EncryptionKey(models.Model):
+    """
+    Stores an Application-level AES-256-GCM Data Encryption Key (DEK).
+    The DEK itself is envelope-encrypted with the master key.
+    """
+    version = models.PositiveIntegerField(
+        unique=True,
+        help_text="Key version used for identifying which key encrypted the payload",
+    )
+    encrypted_key = models.BinaryField(
+        help_text="AES-256-GCM key encrypted with the master key",
+    )
+    is_active = models.BooleanField(
+        default=False,
+        help_text="Is this the current key used for new encryptions?",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-version"]
+
+    def __str__(self):
+        return f"EncryptionKey v{self.version} (Active: {self.is_active})"
+
+
+class KeyRotationLog(models.Model):
+    """
+    Audit log for application-level encryption key rotations.
+    """
+    action = models.CharField(
+        max_length=64,
+        help_text="Action performed (e.g. Generated Initial, Rotated)",
+    )
+    key_version = models.PositiveIntegerField()
+    performed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="User who initiated the rotation (null for automated)",
+    )
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+
+    def __str__(self):
+        return f"KeyRotation(v{self.key_version}) - {self.action} @ {self.timestamp}"
+
+
 class ContractEvent(models.Model):
     """
     Individual events emitted by tracked contracts.
@@ -231,10 +310,10 @@ class ContractEvent(models.Model):
         related_name="events",
         help_text="Invocation that generated this event",
     )
-    decoded_payload = models.JSONField(
+    decoded_payload = EncryptedJSONField(
         null=True,
         blank=True,
-        help_text="ABI-decoded event payload (human-readable fields)",
+        help_text="ABI-decoded event payload (human-readable fields), transparently encrypted",
     )
     decoding_status = models.CharField(
         max_length=16,
