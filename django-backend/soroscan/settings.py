@@ -148,13 +148,15 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Cache (used for rate limiting)
+# Cache (used for rate limiting and expensive query results — issue #131)
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": env("REDIS_URL", default="redis://localhost:6379/1"),
     }
 }
+# TTL for REST/GraphQL search, stats, and timeline responses (seconds)
+QUERY_CACHE_TTL_SECONDS = env.int("QUERY_CACHE_TTL_SECONDS", default=60)
 
 # Rate limiting configuration (via environment variables)
 RATE_LIMIT_ANON = env("RATE_LIMIT_ANON", default="60/minute")
@@ -233,6 +235,7 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ROUTES = {
     "soroscan.ingest.tasks.backfill_contract_events": {"queue": "backfill"},
+    "soroscan.ingest.tasks.evaluate_remediation_rules": {"queue": "default"},
 }
 
 # Celery Beat periodic task schedule
@@ -248,6 +251,10 @@ CELERY_BEAT_SCHEDULE = {
     "archive-old-events": {
         "task": "soroscan.ingest.tasks.archive_old_events",
         "schedule": 86400,  # daily
+    },
+    "evaluate-remediation-rules": {
+        "task": "soroscan.ingest.tasks.evaluate_remediation_rules",
+        "schedule": 300,  # every 5 minutes
     },
 }
 
