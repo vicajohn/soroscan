@@ -280,7 +280,6 @@ class ContractABI(models.Model):
         return f"ABI for {self.contract}"
 
 
- feature/event-payload-encryption
 class EncryptionKey(models.Model):
     """
     Stores an Application-level AES-256-GCM Data Encryption Key (DEK).
