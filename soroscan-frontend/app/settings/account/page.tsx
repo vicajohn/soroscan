@@ -29,7 +29,7 @@ export default function AccountPage() {
         body: JSON.stringify({ email, currentPassword, newPassword, twoFAEnabled }),
       });
       showToast("Account updated", "success");
-    } catch (err) {
+    } catch {
       showToast("Failed to save account", "error");
     } finally {
       setSaving(false);

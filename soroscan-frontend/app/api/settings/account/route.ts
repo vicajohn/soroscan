@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     // In a real app we'd persist this to a database. Here we just echo success.
     return NextResponse.json({ ok: true, data: body });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

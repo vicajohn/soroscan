@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useMutation, gql } from '@apollo/client';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -38,16 +38,16 @@ type LoginFormValues = z.infer<typeof loginSchema>;
  */
 export default function LoginPage() {
   const router = useRouter();
-  const [callbackUrl, setCallbackUrl] = useState('/dashboard');
-
-  useEffect(() => {
+  const [callbackUrl] = useState<string>(() => {
+    if (typeof window === 'undefined') return '/dashboard';
     try {
       const params = new URLSearchParams(window.location.search);
-      setCallbackUrl(params.get('callbackUrl') || '/dashboard');
-    } catch (e) {
-      setCallbackUrl('/dashboard');
+      return params.get('callbackUrl') || '/dashboard';
+    } catch {
+      return '/dashboard';
     }
-  }, []);
+  });
+
   const [error, setError] = useState<string | null>(null);
 
   const {

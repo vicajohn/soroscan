@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ThemeSelector from "../components/ThemeSelector";
 import { showToast } from "@/context/ToastContext";
 
@@ -19,7 +19,7 @@ export default function PreferencesPage(){
       localStorage.setItem('timezone', tz);
       localStorage.setItem('language', lang);
       showToast('Preferences saved','success');
-    }catch(e){
+    }catch{
       showToast('Failed to save preferences','error');
     }finally{setSaving(false)}
   }
