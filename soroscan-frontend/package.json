@@ -7,9 +7,9 @@
     "build": "pnpm run codegen && next build",
     "start": "next start",
     "lint": "eslint",
-  "test": "jest --config jest.config.cjs",
-  "test:watch": "jest --config jest.config.cjs --watch",
-  "test:ci": "jest --config jest.config.cjs --ci",
+    "test": "jest --config jest.config.cjs",
+    "test:watch": "jest --config jest.config.cjs --watch",
+    "test:ci": "jest --config jest.config.cjs --ci",
     "codegen": "graphql-codegen --config codegen.ts",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch"
   },
@@ -32,6 +32,10 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "@babel/preset-react": "^7.28.5",
+    "@babel/preset-typescript": "^7.28.5",
     "@graphql-codegen/cli": "^6.1.2",
     "@graphql-codegen/client-preset": "^5.2.3",
     "@graphql-codegen/typescript": "^5.0.8",
@@ -45,6 +49,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "babel-jest": "^30.3.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jest": "^30.2.0",
