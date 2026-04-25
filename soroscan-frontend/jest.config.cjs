@@ -6,6 +6,7 @@ const createJestConfig = nextJest({ dir: './' })
 const config = {
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
+  modulePathIgnorePatterns: ['<rootDir>/.next/standalone'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },

@@ -1,25 +1,32 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ThemeSelector from "./components/ThemeSelector";
 import NotificationPrefs from "./components/NotificationPrefs";
 import APIKeyManager from "./components/APIKeyManager";
 
 export default function SettingsPage() {
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [fontSize, setFontSize] = useState<string>("14");
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const display = localStorage.getItem("displaySettings");
-    if (display) {
-      try {
-        const parsed = JSON.parse(display);
-        if (parsed.rowsPerPage) setRowsPerPage(parsed.rowsPerPage);
-        if (parsed.fontSize) setFontSize(String(parsed.fontSize));
-      } catch (e) {
-        // ignore malformed prefs
-      }
+  const [rowsPerPage, setRowsPerPage] = useState<number>(() => {
+    if (typeof window === "undefined") return 10;
+    try {
+      const display = localStorage.getItem("displaySettings");
+      if (!display) return 10;
+      const parsed = JSON.parse(display) as { rowsPerPage?: number };
+      return parsed.rowsPerPage ?? 10;
+    } catch {
+      return 10;
     }
-  }, []);
+  });
+  const [fontSize, setFontSize] = useState<string>(() => {
+    if (typeof window === "undefined") return "14";
+    try {
+      const display = localStorage.getItem("displaySettings");
+      if (!display) return "14";
+      const parsed = JSON.parse(display) as { fontSize?: number | string };
+      return parsed.fontSize ? String(parsed.fontSize) : "14";
+    } catch {
+      return "14";
+    }
+  });
   const [saved, setSaved] = useState(false);
 
   // Commented out useEffect to avoid localStorage dependency
